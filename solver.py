@@ -36,21 +36,18 @@ class NodeGen:
     def solve(self, CNF:list, initial=0, visited=[]):
         for neighbor in self.G.neighbors(initial):
             if neighbor not in visited:
-                CNF_copy = copy.deepcopy(CNF)
+                CNF_copy = []
 
-                for clause in CNF_copy:
-                    if neighbor in clause:
-                        CNF_copy.remove(clause)
+                for clause in CNF:
+                    if neighbor not in clause:
+                        CNF_copy.append(clause)
 
                     elif -neighbor in clause:
                         clause.remove(-neighbor)
-
-                print(CNF_copy, visited)
-                time.sleep(1)
+                        CNF_copy.append(clause)
                 
                 if not any(CNF_copy):
                     return visited + [neighbor]
-                
                 
                 elif not (check_contradiction(CNF_copy) or check_empty(CNF_copy)):
                     result = self.solve(CNF_copy, initial=neighbor, visited=visited + [neighbor])

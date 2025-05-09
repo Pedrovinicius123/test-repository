@@ -18,10 +18,10 @@ def generate_random_SAT(n_variables, n_clauses, max_literals_per_clause):
     return CNF
 
 if __name__ == '__main__':
-    CNF = generate_random_SAT(4, 10, 3)
+    CNF = generate_random_SAT(6, 20, 3)
 
     print(CNF)
-    solver = NodeGen(4)
+    solver = NodeGen(6)
     result = solver.solve(CNF)
 
     print(result)
