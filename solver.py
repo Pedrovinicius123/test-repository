@@ -1,6 +1,8 @@
 import networkx as nx
 import copy, time # for debugging
 
+from collections import defaultdict
+
 def check_empty(CNF:list):
     for clause in CNF:
         if not any(clause):
@@ -13,43 +15,40 @@ def check_contradiction(CNF:list):
         if len(clause) == 1 and [-clause[0]] in CNF:
             return True
 
-    return False            
+    return False
+
+def get_most_recurrent(CNF:list):
+    counter = defaultdict(int)
+    for clause in CNF:
+        for literal in clause:
+            counter[abs(literal)] += 1
+
+    return max(counter, key=counter.get)            
 
 class NodeGen:
     def __init__(self, max_var):
         self.max_var = max_var
         self.i = 0
-        self.G = self.generate_graph()
+        self.G = nx.DiGraph()
 
-    def generate_graph(self, G=nx.DiGraph()):
-        if self.i >= self.max_var:
-            return G
+    def solve(self, CNF:list, initial:int, relational=defaultdict(list)):
+        CNF_copy = []
+        for clause in CNF:
+            if initial in clause:
+                clause.remove(initial)
+                relational[-initial].append(clause)
 
-        G.add_edge(self.i, -self.i - 1)
-        G.add_edge(self.i, self.i + 1)
-        G.add_edge(-self.i, -self.i - 1)
-        G.add_edge(-self.i, self.i + 1)
+            elif -initial in clause:
+                clause.remove(-initial)
+                relational[initial].append(clause)
 
-        self.i += 1
-        return self.generate_graph(G)
+            else:
+                CNF_copy.append(clause)
 
-    def solve(self, CNF:list, initial=0, visited=[]):
-        for neighbor in self.G.neighbors(initial):
-            if neighbor not in visited:
-                CNF_copy = []
+        if not (check_contradiction(relational[initial]) or check_empty(relational[initial])):
+            relational[initial] = self.solve(relational[initial] + CNF_copy, get_most_recurrent(relational[initial] + CNF_copy))
+        
+        elif not (check_contradiction(relational[-initial]) or check_empty(relational[-initial])):
+            relational[-initial] = self.solve(relational[-initial] + CNF_copy, get_most_recurrent(relational[-initial] + CNF_copy))
 
-                for clause in CNF:
-                    if neighbor not in clause:
-                        CNF_copy.append(clause)
-
-                    elif -neighbor in clause:
-                        clause.remove(-neighbor)
-                        CNF_copy.append(clause)
-                
-                if not any(CNF_copy):
-                    return visited + [neighbor]
-                
-                elif not (check_contradiction(CNF_copy) or check_empty(CNF_copy)):
-                    result = self.solve(CNF_copy, initial=neighbor, visited=visited + [neighbor])
-                    if result:
-                        return result
+        return relational       

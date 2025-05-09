@@ -1,5 +1,7 @@
 from solver import NodeGen
 import random
+import matplotlib.pyplot as plt
+import networkx as nx
 
 def generate_random_SAT(n_variables, n_clauses, max_literals_per_clause):
     CNF = []
@@ -18,10 +20,12 @@ def generate_random_SAT(n_variables, n_clauses, max_literals_per_clause):
     return CNF
 
 if __name__ == '__main__':
-    CNF = generate_random_SAT(6, 20, 3)
+    CNF = generate_random_SAT(30, 30, 3)
 
-    print(CNF)
-    solver = NodeGen(6)
-    result = solver.solve(CNF)
+    solver = NodeGen(30)
+    nx.draw(solver.G, pos=nx.spring_layout(solver.G), with_labels=True)
+    plt.show()
+
+    result = solver.solve(CNF, 1)
 
     print(result)
