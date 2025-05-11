@@ -1,54 +1,98 @@
 import networkx as nx
 import copy, time # for debugging
-
 from collections import defaultdict
+from rich.pretty import pprint
 
-def check_empty(CNF:list):
-    for clause in CNF:
+def check_empty(CNF:dict):
+    for clause in CNF.values():
         if not any(clause):
             return True
 
     return False
 
-def check_contradiction(CNF:list):
-    for clause in CNF:
-        if len(clause) == 1 and [-clause[0]] in CNF:
+def check_contradiction(CNF:dict):
+    for clause in CNF.values():
+        if len(clause) == 1 and [-clause[0]] in CNF.values():
             return True
 
     return False
 
-def get_most_recurrent(CNF:list):
-    counter = defaultdict(int)
-    for clause in CNF:
-        for literal in clause:
-            counter[abs(literal)] += 1
+def make_tree(CNF:list):
+    d = defaultdict(list)
+    index_clauses = {}
 
-    return max(counter, key=counter.get)            
+    for idx, clause in enumerate(CNF):
+        index_clauses[idx] = copy.deepcopy(clause)
+        d[clause[0]].append(idx)
 
-class NodeGen:
-    def __init__(self, max_var):
-        self.max_var = max_var
-        self.i = 0
-        self.G = nx.DiGraph()
+    return d, index_clauses
 
-    def solve(self, CNF:list, initial:int, relational=defaultdict(list)):
-        CNF_copy = []
-        for clause in CNF:
-            if initial in clause:
-                clause.remove(initial)
-                relational[-initial].append(clause)
+def make_graph(n_vars:int):
+    g = nx.DiGraph()
+    for i in range(1, n_vars+1):
+        g.add_edges_from([[(i-1), i], [(i-1), -i], [-(i-1), i], [-(i-1), -i]])
 
-            elif -initial in clause:
-                clause.remove(-initial)
-                relational[initial].append(clause)
+    return g
 
-            else:
-                CNF_copy.append(clause)
+class Solver:
+    def solve(self, CNF:dict, tree, g):
+        self.traceback = 0
+        result = self.dpllp(CNF, tree, g)
 
-        if not (check_contradiction(relational[initial]) or check_empty(relational[initial])):
-            relational[initial] = self.solve(relational[initial] + CNF_copy, get_most_recurrent(relational[initial] + CNF_copy))
-        
-        elif not (check_contradiction(relational[-initial]) or check_empty(relational[-initial])):
-            relational[-initial] = self.solve(relational[-initial] + CNF_copy, get_most_recurrent(relational[-initial] + CNF_copy))
+        return result, self.traceback
 
-        return relational       
+    def dpllp(self, CNF:dict, tree, g, current=0, assignments=set()):
+        for neighbor in g.neighbors(current):
+            pprint((assignments, neighbor))
+            if -neighbor in assignments:
+                continue
+
+            idx_to_drop = set()
+            if neighbor in tree.keys():
+                idx_to_drop = idx_to_drop.union(set(tree[neighbor]))
+
+            CNF_copy = copy.deepcopy(CNF)
+            
+            for idx, clause in CNF_copy.items():
+                if neighbor in clause:
+                    idx_to_drop.add(idx)
+
+                elif -neighbor in clause:
+                    if len(clause) == 1:
+                        for key, values in tree.items():
+                            if idx in values and -key not in assignments:
+                                idx_to_drop = idx_to_drop.union(set(values))
+                                assignments.add(key)
+                            
+                            elif -key in assignments:
+                                break
+
+                    clause.remove(-neighbor)
+
+            for idx in idx_to_drop:
+                CNF_copy.pop(idx, -1)
+
+            time.sleep(1)
+            pprint(assignments)
+            pprint(neighbor)
+            pprint(CNF_copy)
+
+            self.traceback += 1
+            print(self.traceback)
+
+            if not any(CNF_copy):
+                assignments.add(neighbor)
+                return assignments
+
+            if not (check_empty(CNF_copy) or check_contradiction(CNF_copy)):
+                assignments_copy = assignments.copy()
+                if -neighbor not in assignments:
+                    assignments_copy.add(neighbor)
+                
+                result = self.dpllp(CNF_copy.copy(), tree, g, current=neighbor, assignments=assignments_copy)
+
+                if result:
+                    return result
+
+        return False
+    

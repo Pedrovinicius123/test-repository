@@ -1,7 +1,8 @@
-from solver import NodeGen
+from solver import Solver, make_tree, make_graph
 import random
 import matplotlib.pyplot as plt
 import networkx as nx
+import pycosat
 
 def generate_random_SAT(n_variables, n_clauses, max_literals_per_clause):
     CNF = []
@@ -20,12 +21,13 @@ def generate_random_SAT(n_variables, n_clauses, max_literals_per_clause):
     return CNF
 
 if __name__ == '__main__':
-    CNF = generate_random_SAT(30, 30, 3)
+    n_variables = 7
+    CNF = generate_random_SAT(n_variables, 200, 5)
 
-    solver = NodeGen(30)
-    nx.draw(solver.G, pos=nx.spring_layout(solver.G), with_labels=True)
-    plt.show()
-
-    result = solver.solve(CNF, 1)
-
+    tree, clause_idx = make_tree(CNF)
+    g = make_graph(n_variables)
+    solver = Solver()
+    
+    result = solver.solve(clause_idx, tree, g)
+    print(pycosat.solve(CNF))
     print(result)
