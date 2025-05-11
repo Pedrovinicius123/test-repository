@@ -2,6 +2,7 @@ import networkx as nx
 import copy, time # for debugging
 from collections import defaultdict
 from rich.pretty import pprint
+from sys import stdout
 
 def check_empty(CNF:dict):
     for clause in CNF.values():
@@ -43,7 +44,6 @@ class Solver:
 
     def dpllp(self, CNF:dict, tree, g, current=0, assignments=set()):
         for neighbor in g.neighbors(current):
-            pprint((assignments, neighbor))
             if -neighbor in assignments:
                 continue
 
@@ -73,12 +73,16 @@ class Solver:
                 CNF_copy.pop(idx, -1)
 
             time.sleep(1)
-            pprint(assignments)
-            pprint(neighbor)
-            pprint(CNF_copy)
+            
 
             self.traceback += 1
-            print(self.traceback)
+
+            stdout.write("\rITERAÇÕES %d\n" % self.traceback)
+            stdout.flush()
+
+            print("ATRIBUIÇÕES: ", end=' ')
+            pprint(assignments.union(set([neighbor])))
+            print('\n')
 
             if not any(CNF_copy):
                 assignments.add(neighbor)

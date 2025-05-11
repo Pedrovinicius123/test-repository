@@ -29,5 +29,5 @@ if __name__ == '__main__':
     solver = Solver()
     
     result = solver.solve(clause_idx, tree, g)
-    print(pycosat.solve(CNF))
+    print('DPLL', pycosat.solve(CNF))
     print(result)
