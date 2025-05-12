@@ -1,145 +1,103 @@
-import networkx as nx
-import copy, time # for debugging
+from ast import Assign
+import time # for debugging
 from collections import defaultdict
-from rich.pretty import pprint
+from itertools import combinations
 from sys import stdout
 
-def check_empty(CNF:dict):
-    for clause in CNF.values():
-        if not any(clause):
+def check_empty(CNF:list):
+    for clause in CNF:
+        if len(clause) == 0:
             return True
 
     return False
 
-def check_contradiction(CNF:dict):
-    for clause in CNF.values():
-        if len(clause) == 1 and [-clause[0]] in CNF.values():
+def check_contradiction(CNF:list):
+    for clause in CNF:
+        if len(clause) == 1 and set([-list(clause)[0]]) in CNF:
             return True
 
     return False
 
-def make_tree(CNF:list):
-    d = defaultdict(list)
-    index_clauses = {}
-
-    for idx, clause in enumerate(CNF):
-        index_clauses[idx] = copy.deepcopy(clause[1:])
-        d[clause[0]].append(idx)
-
-    return d, index_clauses
-
-def make_graph(n_vars:int):
-    g = nx.DiGraph()
-    for i in range(1, n_vars+1):
-        g.add_edges_from([[(i-1), i], [(i-1), -i], [-(i-1), i], [-(i-1), -i]])
-
-    return g
-
-def unitary_propagation(CNF:dict):
-    unitaries = set()
-    idx_to_drop = set()
-
-    for idx, value in CNF.items():
-        if len(value) == 1 and -value[0] not in unitaries:
-            unitaries.add(value[0])
-            idx_to_drop.add(idx)
-
-        elif len(value) > 1:
-            for literal in value:
-                if literal in unitaries:
-                    idx_to_drop.add(idx)
-
-                elif -literal in unitaries:
-                    value.remove(literal)
-
-
-    return unitaries, idx_to_drop
-
-def apply_assignments(tree, CNF_copy:dict, assignments:set):
-    ext_assignments = set()
-    for assignment in assignments:
-        idx_to_drop = set()
-
-        if assignment in tree.keys():
-            idx_to_drop = idx_to_drop.union(set(tree[neighbor]))
-
-        for idx, clause in CNF_copy.items():
-            if neighbor in clause:
-                idx_to_drop.add(idx)
-
-            elif -neighbor in clause:
-                if len(clause) == 1:
-                    for key, values in tree.items():
-                        if idx in values and -key not in assignments:
-                            idx_to_drop = idx_to_drop.union(set(values))
-                            ext_assignments.add(key)
-                        
-                        elif -key in assignments:
-                            break
-
-                clause.remove(-neighbor)
-
-        for assignment in ext_assignments:
-            if assignment in tree.keys():
-                idx_to_drop = idx_to_drop.union(tree[assignment])
-
-            for idx, clause in CNF_copy.items():
-                if assignment in clause:
-                    idx_to_drop.add(idx)
-
-                elif -assignment in clause:
-                    clause.remove(-assignment)
-
-    for idx in idx_to_drop:
-        CNF_copy.pop(idx, -1)
-
-    return CNF_copy, ext_assignments
-
-def test_assignments(assignments:set, CNF_copy:dict, i):
-    CNF_copy = CNF.copy()
-        
-    assignments.add(i)
-    new, CNF_copy = unitary_propagation(CNF)
-    assignments = assignments.union(new)
-
-    CNF_copy, ext_assignments = apply_assignments(tree, CNF_copy=CNF_copy, assignments=assignments)
-    assignments = assignments.union(ext_assignments)
-    
-    if not check_empty(CNF_copy):
-        return CNF_copy, assignments
-
-    elif not any(CNF_copy):
-        return True, assignments
-
-    return False
-
-class Solver:
-    def solve(self, CNF:dict, tree, g):
-        self.traceback = 0
-        result = self.dpllp(CNF, tree, g)
-
-        return result, self.traceback
-
-    def dpllp(self, CNF:dict, tree, assignments=set(), new_assignments=set(), i=0):
-        self.traceback += 1
-        result = test_assignments(assignments, CNF.copy(), i+1)
-        
-        if isinstance(result, bool) and result:
-            assignments.add(i)
-            return assignments
-
-            assignments_copy = assignments.copy()
-            assignments_copy = assignments_copy.union(ext_assignments)
-
-            if -neighbor not in assignments:
-                assignments_copy.add(neighbor)
+def unitary_propagation(CNF:list):
+    assignments = set()
+    for clause in CNF:
+        if len(clause) == 1 and -list(clause)[0] not in assignments:
+            assignments.add(list(clause)[0])
             
-            result = self.dpllp(CNF_copy.copy(), tree, assignments=assignments_copy)
+        elif len(clause) == 1 and -list(clause)[0] in assignments:
+            return False
 
-            if result:
-                return result
+    return assignments
 
-            return self.dpllp(CNF_copy.copy()), tree, current
+def test_assignments(CNF:list, assignments:set):
+    for literal in assignments:
+        for clause in CNF:
+            if literal in clause:
+                CNF.remove(clause)
 
-        return False
-    
+            elif -literal in clause:
+                clause.remove(-literal)
+
+    return CNF
+
+def form_combinations_from_CNF(CNF:list):
+    combs = combinations(CNF, 2)
+    paths = combinations(combs, len(CNF)-1)
+    print('FINISHED')
+
+    return paths
+
+def P_SAT(CNF:list, assignments_previous=set()):
+    print('A')
+    paths = form_combinations_from_CNF(CNF)
+    i = 0
+
+    for path in paths:
+        i += 1
+        assignment = assignments_previous
+        found = True
+        break_all = False
+        isolated = []
+
+        for comb in path:
+            if break_all:
+                break
+
+            literals = comb[0].intersection(comb[1])
+            if not any(literals):
+                isolated.extend([comb[0], comb[1]])
+
+            for literal in literals:
+                if -literal not in assignment:
+                    assignment.add(literal)
+                
+                else:
+                    break_all = True
+                    found = False
+                    break
+
+        print(assignment)
+        time.sleep(1)
+
+        if isolated:
+            
+            isolated = test_assignments(isolated, assignment)
+            res = unitary_propagation(isolated)
+            
+            if res:
+                assignment = assignment.union(res)
+                isolated = test_assignments(isolated, res)
+            
+            if not any(isolated):
+                return assignment
+
+            if not (check_contradiction(isolated) or check_empty(isolated)):
+                result = P_SAT(isolated, assignments_previous=assignment)
+                if result:
+                    assignment = assignment.union(result)
+                    return assignment
+
+        if found:
+            return assignment
+
+    return False                

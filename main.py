@@ -1,8 +1,5 @@
-from solver import Solver, make_tree, make_graph
+from solver import P_SAT
 import random
-import matplotlib.pyplot as plt
-import networkx as nx
-import pycosat
 
 def generate_random_SAT(n_variables, n_clauses, max_literals_per_clause):
     CNF = []
@@ -16,19 +13,14 @@ def generate_random_SAT(n_variables, n_clauses, max_literals_per_clause):
             if -literal in clause:
                 clause.remove(-literal)
 
-        CNF.append(clause)
+        CNF.append(set(clause))
 
     return CNF
 
 if __name__ == '__main__':
-    n_variables = 30
-    CNF = generate_random_SAT(n_variables, 100, 3)
-
-    tree, clause_idx = make_tree(CNF)
-    g = make_graph(n_variables)
-    solver = Solver()
+    n_variables = 7
+    CNF = generate_random_SAT(n_variables, 20, 3)
 
     print(CNF)    
-    result = solver.solve(clause_idx, tree, g)
-    print('DPLL', pycosat.solve(CNF))
+    result = P_SAT(CNF=CNF)
     print(result)
