@@ -22,7 +22,7 @@ def generate_random_SAT(n_variables, n_clauses, max_literals_per_clause):
 
 if __name__ == '__main__':
     n_variables = 7
-    CNF = generate_random_SAT(n_variables, 40, 5)
+    CNF = generate_random_SAT(n_variables, 100, 5)
 
     tree, clause_idx = make_tree(CNF)
     g = make_graph(n_variables)

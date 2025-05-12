@@ -43,6 +43,7 @@ class Solver:
         return result, self.traceback
 
     def dpllp(self, CNF:dict, tree, g, current=0, assignments=set()):
+        pprint(CNF)
         for neighbor in g.neighbors(current):
             ext_assignments = set()
 
@@ -63,8 +64,6 @@ class Solver:
                     if len(clause) == 1:
                         for key, values in tree.items():
                             if idx in values and -key not in assignments:
-                                print(key, neighbor)
-                                time.sleep(1)
                                 idx_to_drop = idx_to_drop.union(set(values))
                                 ext_assignments.add(key)
                             
@@ -87,17 +86,17 @@ class Solver:
             for idx in idx_to_drop:
                 CNF_copy.pop(idx, -1)
 
-            time.sleep(1)
             self.traceback += 1
 
             stdout.write("\rITERAÇÕES %d\n" % self.traceback)
             stdout.flush()
 
-            pprint(CNF_copy)
             print("ATRIBUIÇÕES:")
             pprint(assignments.union(set([neighbor])))
 
             if not any(CNF_copy):
+                pprint(ext_assignments)
+                time.sleep(3)
                 assignments = assignments.union(ext_assignments)
                 assignments.add(neighbor)
                 return assignments
