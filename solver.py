@@ -23,7 +23,7 @@ def make_tree(CNF:list):
     index_clauses = {}
 
     for idx, clause in enumerate(CNF):
-        index_clauses[idx] = copy.deepcopy(clause)
+        index_clauses[idx] = copy.deepcopy(clause[1:])
         d[clause[0]].append(idx)
 
     return d, index_clauses
@@ -44,6 +44,8 @@ class Solver:
 
     def dpllp(self, CNF:dict, tree, g, current=0, assignments=set()):
         for neighbor in g.neighbors(current):
+            ext_assignments = set()
+
             if -neighbor in assignments:
                 continue
 
@@ -61,35 +63,49 @@ class Solver:
                     if len(clause) == 1:
                         for key, values in tree.items():
                             if idx in values and -key not in assignments:
+                                print(key, neighbor)
+                                time.sleep(1)
                                 idx_to_drop = idx_to_drop.union(set(values))
-                                assignments.add(key)
+                                ext_assignments.add(key)
                             
                             elif -key in assignments:
                                 break
 
                     clause.remove(-neighbor)
 
+            for assignment in ext_assignments:
+                if assignment in tree.keys():
+                    idx_to_drop = idx_to_drop.union(tree[assignment])
+
+                for idx, clause in CNF_copy.items():
+                    if assignment in clause:
+                        idx_to_drop.add(idx)
+
+                    elif -assignment in clause:
+                        clause.remove(-assignment)
+
             for idx in idx_to_drop:
                 CNF_copy.pop(idx, -1)
 
             time.sleep(1)
-            
-
             self.traceback += 1
 
             stdout.write("\rITERAÇÕES %d\n" % self.traceback)
             stdout.flush()
 
-            print("ATRIBUIÇÕES: ", end=' ')
+            pprint(CNF_copy)
+            print("ATRIBUIÇÕES:")
             pprint(assignments.union(set([neighbor])))
-            print('\n')
 
             if not any(CNF_copy):
+                assignments = assignments.union(ext_assignments)
                 assignments.add(neighbor)
                 return assignments
 
-            if not (check_empty(CNF_copy) or check_contradiction(CNF_copy)):
+            if not check_empty(CNF_copy):
                 assignments_copy = assignments.copy()
+                assignments_copy = assignments_copy.union(ext_assignments)
+
                 if -neighbor not in assignments:
                     assignments_copy.add(neighbor)
                 
