@@ -19,11 +19,12 @@ def generate_random_SAT(n_variables, n_clauses, max_literals_per_clause):
     return CNF
 
 if __name__ == '__main__':
-    n_variables = 20
-    CNF = generate_random_SAT(n_variables, 50, 3)
-
-    print(dpll(CNF))
-    time.sleep(2)    
+    n_variables = 50
+    CNF = generate_random_SAT(n_variables, 300, 3)
     paths = form_combinations_from_CNF(CNF)
+
+    print(dpll(CNF), len(paths)**3*(1/2) + len(paths)*(1/2), 2**n_variables)
+    time.sleep(2)    
+    
     solver = P_SAT(paths, CNF=CNF)
     print(solver.return_result())

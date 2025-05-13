@@ -54,7 +54,7 @@ class P_SAT:
     def __init__(self, paths, CNF:list):
         self.i = 0
         self.CNF = CNF
-        self.result = self.solve(paths, CNF)
+        self.result = self.solve(paths, paths[0], CNF)
         print(self.i)
 
     def return_result(self):
@@ -72,13 +72,12 @@ class P_SAT:
             return self.result
 
 
-    def solve(self, paths, CNF:list, assignments=[], visited=[], initial_index=0):        
+    def solve(self, paths, path_original, CNF:list, assignments=[], visited=[]):        
         self.i += 1
-        sub_CNF = []
-        path_original = paths[initial_index]
+        print(self.i)
         
-        for idx, path in enumerate(paths):
-            if any(p in path for p in path_original) and idx != initial_index and path not in visited:
+        for path in paths:
+            if any(p in path for p in path_original) and path not in visited and path != path_original:
                 for literal in path[0]:
                     if -literal not in assignments:
                         new_CNF = test_assignments(copy.deepcopy(CNF), assignments+[literal])
@@ -96,12 +95,14 @@ class P_SAT:
                                 return set(assignments + new_assignments)
 
                             if not (check_empty(new_CNF) or check_contradiction(new_CNF)):
-                                result = None        
-                                paths.remove(path)
+                                result = None 
+                                paths_copy = copy.deepcopy(paths)
+                                paths_copy.remove(path)
+
                                 if new_CNF == CNF:                                
-                                    result = self.solve(paths.copy(), new_CNF, assignments=assignments+new_assignments+[random.choice(random.choice(list(map(list, new_CNF))))], initial_index=idx-1, visited=visited+[path_original])
+                                    result = self.solve(paths_copy, path, new_CNF, assignments=assignments+new_assignments+[random.choice(random.choice(list(map(list, new_CNF))))], visited=visited+[path_original])
                                 else:
-                                    result = self.solve(paths.copy(), new_CNF, assignments=assignments+new_assignments+[literal], initial_index=idx-1, visited=visited+[path_original])
+                                    result = self.solve(paths_copy, path, new_CNF, assignments=assignments+new_assignments+[literal], visited=visited+[path_original])
                                 
                                 if result:
                                     return result                
