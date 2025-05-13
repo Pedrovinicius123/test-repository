@@ -19,11 +19,10 @@ def generate_random_SAT(n_variables, n_clauses, max_literals_per_clause):
 
 if __name__ == '__main__':
     n_variables = 20
-    CNF = generate_random_SAT(n_variables, 30, 3)
+    CNF = generate_random_SAT(n_variables, 100, 3)
 
     print(CNF, pycosat.solve(list(map(list, CNF))))
     time.sleep(2)    
     paths = form_combinations_from_CNF(CNF)
     solver = P_SAT(paths, CNF=CNF)
     print(solver.return_result())
-    print(CNF)
