@@ -69,7 +69,7 @@ class P_SAT:
                 if not found:
                     return False
 
-            return True
+            return self.result
 
 
     def solve(self, paths, CNF:list, assignments=[], visited=[], initial_index=0):        
