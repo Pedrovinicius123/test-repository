@@ -1,5 +1,4 @@
-from ast import Assign
-import time # for debugging
+import time, copy, random # for debugging
 from collections import defaultdict
 from itertools import combinations
 from sys import stdout
@@ -18,11 +17,11 @@ def check_contradiction(CNF:list):
 
     return False
 
-def unitary_propagation(CNF:list):
-    assignments = set()
+def unitary_propagation(CNF:list, previous=[]):
+    assignments = previous
     for clause in CNF:
         if len(clause) == 1 and -list(clause)[0] not in assignments:
-            assignments.add(list(clause)[0])
+            assignments.append(list(clause)[0])
             
         elif len(clause) == 1 and -list(clause)[0] in assignments:
             return False
@@ -42,62 +41,68 @@ def test_assignments(CNF:list, assignments:set):
 
 def form_combinations_from_CNF(CNF:list):
     combs = combinations(CNF, 2)
-    paths = combinations(combs, len(CNF)-1)
-    print('FINISHED')
+    combinations_possible = []
 
-    return paths
+    for comb in combs:
+        value = comb[0].intersection(comb[1])
+        if any(value):
+            combinations_possible.append([value, comb[0], comb[1]])
 
-def P_SAT(CNF:list, assignments_previous=set()):
-    print('A')
-    paths = form_combinations_from_CNF(CNF)
-    i = 0
+    return combinations_possible
 
-    for path in paths:
-        i += 1
-        assignment = assignments_previous
-        found = True
-        break_all = False
-        isolated = []
+class P_SAT:
+    def __init__(self, paths, CNF:list):
+        self.i = 0
+        self.CNF = CNF
+        self.result = self.solve(paths, CNF)
+        print(self.i)
 
-        for comb in path:
-            if break_all:
-                break
+    def return_result(self):
+        if self.result:
+            for clause in self.CNF:
+                found = False
+                for assignment in self.result:
+                    if assignment in clause:
+                        found = True
+                        break
 
-            literals = comb[0].intersection(comb[1])
-            if not any(literals):
-                isolated.extend([comb[0], comb[1]])
+                if not found:
+                    return False
 
-            for literal in literals:
-                if -literal not in assignment:
-                    assignment.add(literal)
-                
-                else:
-                    break_all = True
-                    found = False
-                    break
+            return True
 
-        print(assignment)
-        time.sleep(1)
 
-        if isolated:
-            
-            isolated = test_assignments(isolated, assignment)
-            res = unitary_propagation(isolated)
-            
-            if res:
-                assignment = assignment.union(res)
-                isolated = test_assignments(isolated, res)
-            
-            if not any(isolated):
-                return assignment
+    def solve(self, paths, CNF:list, assignments=[], visited=[], initial_index=0):        
+        self.i += 1
+        sub_CNF = []
+        path_original = paths[initial_index]
+        
+        for idx, path in enumerate(paths):
+            if any(p in path for p in path_original) and idx != initial_index and path not in visited:
+                for literal in path[0]:
+                    if -literal not in assignments:
+                        new_CNF = test_assignments(copy.deepcopy(CNF), assignments+[literal])
+                        new_assignments = []
 
-            if not (check_contradiction(isolated) or check_empty(isolated)):
-                result = P_SAT(isolated, assignments_previous=assignment)
-                if result:
-                    assignment = assignment.union(result)
-                    return assignment
+                        while any(len(clause) == 1 for clause in new_CNF) and isinstance(new_assignments, list):
+                            new_assignments = unitary_propagation(new_CNF, new_assignments+[literal])
+                            if not isinstance(new_assignments, list) and not new_assignments:
+                                return False
 
-        if found:
-            return assignment
+                            new_CNF = test_assignments(new_CNF, new_assignments+[literal])                        
 
-    return False                
+                        if isinstance(new_assignments, list):
+                            if not any(new_CNF):
+                                return set(assignments + new_assignments)
+
+                            if not (check_empty(new_CNF) or check_contradiction(new_CNF)):
+                                result = None        
+                                if new_CNF == CNF:                                
+                                    result = self.solve(paths.copy(), new_CNF, assignments=assignments+new_assignments+[random.choice(random.choice(list(map(list, new_CNF))))], initial_index=idx, visited=visited+[path_original])
+                                else:
+                                    result = self.solve(paths.copy(), new_CNF, assignments=assignments+new_assignments+[literal], initial_index=idx, visited=visited+[path_original])
+                                
+                                if result:
+                                    return result                
+
+        return False  
