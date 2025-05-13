@@ -1,5 +1,6 @@
 from solver import P_SAT, form_combinations_from_CNF
-import random, pycosat, time
+from dpll_traditional import dpll
+import random, time
 
 def generate_random_SAT(n_variables, n_clauses, max_literals_per_clause):
     CNF = []
@@ -19,9 +20,9 @@ def generate_random_SAT(n_variables, n_clauses, max_literals_per_clause):
 
 if __name__ == '__main__':
     n_variables = 20
-    CNF = generate_random_SAT(n_variables, 100, 3)
+    CNF = generate_random_SAT(n_variables, 50, 3)
 
-    print(pycosat.solve(list(map(list, CNF))))
+    print(dpll(CNF))
     time.sleep(2)    
     paths = form_combinations_from_CNF(CNF)
     solver = P_SAT(paths, CNF=CNF)

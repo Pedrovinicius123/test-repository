@@ -89,7 +89,7 @@ class P_SAT:
                             if not isinstance(new_assignments, list) and not new_assignments:
                                 return False
 
-                            new_CNF = test_assignments(new_CNF, new_assignments+[literal])                        
+                            new_CNF = test_assignments(new_CNF, new_assignments+[literal])
 
                         if isinstance(new_assignments, list):
                             if not any(new_CNF):
@@ -97,10 +97,11 @@ class P_SAT:
 
                             if not (check_empty(new_CNF) or check_contradiction(new_CNF)):
                                 result = None        
+                                paths.remove(path)
                                 if new_CNF == CNF:                                
-                                    result = self.solve(paths.copy(), new_CNF, assignments=assignments+new_assignments+[random.choice(random.choice(list(map(list, new_CNF))))], initial_index=idx, visited=visited+[path_original])
+                                    result = self.solve(paths.copy(), new_CNF, assignments=assignments+new_assignments+[random.choice(random.choice(list(map(list, new_CNF))))], initial_index=idx-1, visited=visited+[path_original])
                                 else:
-                                    result = self.solve(paths.copy(), new_CNF, assignments=assignments+new_assignments+[literal], initial_index=idx, visited=visited+[path_original])
+                                    result = self.solve(paths.copy(), new_CNF, assignments=assignments+new_assignments+[literal], initial_index=idx-1, visited=visited+[path_original])
                                 
                                 if result:
                                     return result                
