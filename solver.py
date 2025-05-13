@@ -54,7 +54,7 @@ class P_SAT:
     def __init__(self, paths, CNF:list):
         self.i = 0
         self.CNF = CNF
-        self.result = self.solve(paths, paths[0], CNF)
+        self.result = self.solve(paths, CNF)
         print(self.i)
 
     def return_result(self):
@@ -72,12 +72,13 @@ class P_SAT:
             return self.result
 
 
-    def solve(self, paths, path_original, CNF:list, assignments=[], visited=[]):        
+    def solve(self, paths, CNF:list, assignments=[], visited=[], initial_index=0):        
         self.i += 1
-        print(self.i)
+        sub_CNF = []
+        path_original = paths[initial_index]
         
-        for path in paths:
-            if any(p in path for p in path_original) and path not in visited and path != path_original:
+        for idx, path in enumerate(paths):
+            if any(p in path for p in path_original) and idx != initial_index and path not in visited:
                 for literal in path[0]:
                     if -literal not in assignments:
                         new_CNF = test_assignments(copy.deepcopy(CNF), assignments+[literal])
@@ -88,21 +89,18 @@ class P_SAT:
                             if not isinstance(new_assignments, list) and not new_assignments:
                                 return False
 
-                            new_CNF = test_assignments(new_CNF, new_assignments+[literal])
+                            new_CNF = test_assignments(new_CNF, new_assignments+[literal])                        
 
                         if isinstance(new_assignments, list):
                             if not any(new_CNF):
                                 return set(assignments + new_assignments)
 
                             if not (check_empty(new_CNF) or check_contradiction(new_CNF)):
-                                result = None 
-                                paths_copy = copy.deepcopy(paths)
-                                paths_copy.remove(path)
-
+                                result = None        
                                 if new_CNF == CNF:                                
-                                    result = self.solve(paths_copy, path, new_CNF, assignments=assignments+new_assignments+[random.choice(random.choice(list(map(list, new_CNF))))], visited=visited+[path_original])
+                                    result = self.solve(paths.copy(), new_CNF, assignments=assignments+new_assignments+[random.choice(random.choice(list(map(list, new_CNF))))], initial_index=idx, visited=visited+[path_original])
                                 else:
-                                    result = self.solve(paths_copy, path, new_CNF, assignments=assignments+new_assignments+[literal], visited=visited+[path_original])
+                                    result = self.solve(paths.copy(), new_CNF, assignments=assignments+new_assignments+[literal], initial_index=idx, visited=visited+[path_original])
                                 
                                 if result:
                                     return result                
