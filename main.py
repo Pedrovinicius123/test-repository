@@ -26,11 +26,12 @@ if __name__ == '__main__':
     paths = form_combinations_from_CNF(CNF)
     solver = P_SAT(paths, CNF=CNF)
     result = solver.return_result()
-
+    print('RESULT: ', result)
+    
     if result:
         for literal in result:
             if -literal in result:
                 print("OOOOPAAAA!!")
                 break
         
-        print(result)
+        

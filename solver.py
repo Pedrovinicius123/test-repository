@@ -59,7 +59,6 @@ class P_SAT:
 
     def return_result(self):
         if self.result:
-            print(self.result)
             for clause in self.CNF:
                 found = False
                 for assignment in self.result:
@@ -68,7 +67,7 @@ class P_SAT:
                         break
 
                 if not found:
-                    print(clause)
+                    print('NO SATISFIED: ', clause)
                     return False
 
             return self.result
@@ -91,7 +90,7 @@ class P_SAT:
 
                             new_CNF = test_assignments(new_CNF, assignments+new_assignments+[literal])
 
-                        print(new_CNF)
+                        print("FORMULA: ", new_CNF)
                         time.sleep(1)                        
 
                         if isinstance(new_assignments, list):
