@@ -3,117 +3,133 @@ from collections import defaultdict
 from itertools import combinations
 from sys import stdout
 
-def check_empty(CNF:list):
-    for clause in CNF:
+def check_empty(CNF:dict):
+    for clause in CNF.values():
         if len(clause) == 0:
             return True
 
     return False
 
-def check_contradiction(CNF:list):
-    for clause in CNF:
-        if len(clause) == 1 and set([-list(clause)[0]]) in CNF:
+def check_contradiction(CNF:dict):
+    for clause in CNF.values():
+        if len(clause) == 1 and set([-list(clause)[0]]) in CNF.values():
             return True
 
     return False
 
-def unitary_propagation(CNF:list, previous=[]):
-    assignments = previous
-    for clause in CNF:
-        if len(clause) == 1 and -list(clause)[0] not in assignments:
-            assignments.append(list(clause)[0])
-            
-        elif len(clause) == 1 and -list(clause)[0] in assignments:
-            return False
+def unitary_propagation(CNF:dict, assignments=set()):
+    while True:
+        idx_to_drop = set()
 
-    return assignments
+        for idx, clause in CNF.items():
+            if len(clause) == 1 and -list(clause)[0] not in assignments:
+                assignments.add(list(clause)[0])
+                idx_to_drop.add(idx)
 
-def test_assignments(CNF:list, assignments:set):
+            elif any(literal in assignments for literal in clause):
+                idx_to_drop.add(idx)
+                
+            elif len(clause) == 1 and -list(clause)[0] in assignments:
+                return False, CNF
+
+        for i in idx_to_drop:
+            CNF.pop(i)
+
+        if not any(CNF) or not any(idx_to_drop):
+            return assignments, CNF            
+
+def test_assignments(CNF:dict, assignments:set):
+    idx_to_drop = set()
     for literal in assignments:
-        for clause in CNF:
+        for idx, clause in CNF.items():
             if literal in clause:
-                CNF.remove(clause)
+                idx_to_drop.add(idx)
 
             elif -literal in clause:
                 clause.remove(-literal)
 
+    for idx in idx_to_drop:
+        CNF.pop(idx)
+
     return CNF
 
-def form_combinations_from_CNF(CNF:list):
-    combs = combinations(CNF, 2)
-    combinations_possible = []
+def complement(clause1, clause2):
+    copy1 = clause1.copy()
+    copy2 = clause2.copy()
 
-    for comb in combs:
-        value = comb[0].intersection(comb[1])
+    inter = set(copy1).intersection(set(copy2))
+
+    for literal in inter:
+        copy1.remove(literal)
+        copy2.remove(literal)
+
+    return inter, [copy1] + [copy2]
+
+def dict_cnf(CNF:list):
+    CNF_new = {}
+    for idx, clause in enumerate(CNF):
+        CNF_new[idx] = clause
+
+    return CNF_new
+
+def form_combinations_from_CNF(CNF:dict):
+    combinations_possible = defaultdict(set)
+    for comb in combinations(CNF, 2):
+        value, comp = complement(CNF[comb[0]], CNF[comb[1]])
         if any(value):
-            combinations_possible.append([value, comb[0], comb[1]])
+            combinations_possible[frozenset(value)] = combinations_possible[frozenset(value)].union(set([comb[0]] + [comb[1]]))
 
     return combinations_possible
 
-class P_SAT:
-    def __init__(self, paths, CNF:list):
-        self.i = 0
-        self.CNF = CNF
-        self.result = self.solve(paths, paths[0], CNF)
-        print(self.i)
+class Solver:
+    def __init__(self):
+        self.iterations = 0
 
-    def return_result(self):
-        if self.result:
-            for clause in self.CNF:
-                found = False
-                for assignment in self.result:
-                    if assignment in clause:
-                        found = True
-                        break
+    def P_SAT(self, CNF:dict, combinations_possible, assignments=set(), recursive=1):
+        for key, combinations in combinations_possible.items():
+            self.iterations += 1
+            if not any(-k in assignments for k in key):
+                #print(recursive, key)
+                CNF_copy = copy.deepcopy(CNF)
+                idx_to_drop = set()
+                idx_to_drop = idx_to_drop.union(combinations)
+                new_assignments, CNF_copy = unitary_propagation(CNF_copy, assignments.union(key))
+                print(self.iterations, recursive)
 
-                if not found:
-                    print('NO SATISFIED: ', clause)
-                    return False
+                if new_assignments:
+                    #print(f'CNF: {CNF_copy}','\n', f'Assignemnts {assignments.union(key).union(new_assignments)}', f'LEVEL: {recursive}')
+                    for k in assignments.union(new_assignments).union(key):
+                        for key_inner, clause in CNF_copy.items():
+                            if k in clause:
+                                idx_to_drop.add(key_inner)
 
-            return self.result
+                            elif -k in clause:
+                                clause.remove(-k)
 
+                    for idx in idx_to_drop:
+                        if idx in CNF_copy.keys():
+                            CNF_copy.pop(idx)
+                    
+                    if not (check_contradiction(CNF_copy) or check_empty(CNF_copy)):
+                        if not any(CNF_copy):
+                            return assignments.union(new_assignments.union(key))
 
-    def solve(self, paths, path_original, CNF:list, assignments=[]):        
-        self.i += 1
-        
-        for idx, path in enumerate(paths):
-            if any(p in path for p in path_original):
-                for literal in path[0]:
-                    if -literal not in assignments:
-                        new_CNF = test_assignments(copy.deepcopy(CNF), assignments+[literal])
-                        new_assignments = []
+                        combinations_copy = combinations_possible.copy()
+                        combinations_copy.pop(key)
 
-                        while any(len(clause) == 1 for clause in new_CNF) and isinstance(new_assignments, list):
-                            new_assignments = unitary_propagation(new_CNF, assignments+new_assignments+[literal])
-                            if not isinstance(new_assignments, list) and not new_assignments:
-                                return False
+                        if CNF_copy == CNF:
+                            print("!")
+                            for clause in CNF.values():
+                                for literal in clause:
+                                    if -literal not in assignments:
+                                        print("LITERAL: ", literal)
+                                        result = self.P_SAT(CNF_copy, combinations_copy, assignments=assignments.union(new_assignments.union(key)).union(set([literal])), recursive=recursive+1)
+                                        if result:
+                                            return result
 
-                            new_CNF = test_assignments(new_CNF, assignments+new_assignments+[literal])
-
-                        print("FORMULA: ", new_CNF)
-                        time.sleep(1)                        
-
-                        if isinstance(new_assignments, list):
-                            if not (check_empty(new_CNF) or check_contradiction(new_CNF)):
-                                if not any(new_CNF):
-                                    return set(assignments + new_assignments + [literal])
-                                
-                                paths_copy = paths.copy()
-                                paths_copy.remove(path)
-
-                                if new_CNF == CNF:      
-                                    for clause in new_CNF:
-                                        for lit in clause:
-                                            if lit not in set(assignments+new_assignments+[literal]):
-                                                print("!")
-                                                result = self.solve(paths_copy, path, new_CNF, assignments=list(set(assignments))+new_assignments+[literal, lit])
-                                                if result:
-                                                    return result
-
-                                else:
-                                    result = self.solve(paths_copy, path, new_CNF, assignments=list(set(assignments))+new_assignments+[literal])
-                                
-                                    if result:
-                                        return result                
-
-        return False  
+                                        break
+                        
+                        result = self.P_SAT(CNF_copy, combinations_copy, assignments=assignments.union(new_assignments.union(key)), recursive=recursive+1)
+                    
+                        if result:
+                            return result

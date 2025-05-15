@@ -1,5 +1,7 @@
-from solver import P_SAT, form_combinations_from_CNF
+from solver import form_combinations_from_CNF, dict_cnf, Solver, test_assignments
+from rich.pretty import pprint
 import random, pycosat, time
+
 
 def generate_random_SAT(n_variables, n_clauses, max_literals_per_clause):
     CNF = []
@@ -22,16 +24,12 @@ if __name__ == '__main__':
     CNF = generate_random_SAT(n_variables, 50, 3)
 
     print(pycosat.solve(list(map(list, CNF))))
-    time.sleep(2)    
-    paths = form_combinations_from_CNF(CNF)
-    solver = P_SAT(paths, CNF=CNF)
-    result = solver.return_result()
-    print('RESULT: ', result)
-    
+
+    CNF_new = dict_cnf(CNF)
+    paths = form_combinations_from_CNF(CNF_new)
+    result = Solver().P_SAT(CNF_new, paths)
+
     if result:
-        for literal in result:
-            if -literal in result:
-                print("OOOOPAAAA!!")
-                break
-        
+        print(result)
+        print(test_assignments(CNF_new, result))
         
