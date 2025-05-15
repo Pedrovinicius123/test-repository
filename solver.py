@@ -91,45 +91,45 @@ class Solver:
             if not any(-k in assignments for k in key):
                 #print(recursive, key)
                 CNF_copy = copy.deepcopy(CNF)
+                CNF_copy = test_assignments(CNF_copy, assignments.union(key))
+                
                 idx_to_drop = set()
                 idx_to_drop = idx_to_drop.union(combinations)
                 new_assignments, CNF_copy = unitary_propagation(CNF_copy, assignments.union(key))
-                print(self.iterations, recursive)
+
+                print(CNF_copy, f'{key}, {combinations}', "\n")
+                
+                if len(CNF_copy) < 10:
+                    time.sleep(1)
 
                 if new_assignments:
-                    #print(f'CNF: {CNF_copy}','\n', f'Assignemnts {assignments.union(key).union(new_assignments)}', f'LEVEL: {recursive}')
-                    for k in assignments.union(new_assignments).union(key):
-                        for key_inner, clause in CNF_copy.items():
-                            if k in clause:
-                                idx_to_drop.add(key_inner)
+                    print('\n', CNF_copy, '\n\n', assignments.union(key).union(new_assignments))
+                    time.sleep(1)
 
-                            elif -k in clause:
-                                clause.remove(-k)
-
-                    for idx in idx_to_drop:
-                        if idx in CNF_copy.keys():
-                            CNF_copy.pop(idx)
+                    new_ = assignments.union(new_assignments).union(key)
+                    CNF_copy = test_assignments(CNF_copy, assignments)
                     
                     if not (check_contradiction(CNF_copy) or check_empty(CNF_copy)):
                         if not any(CNF_copy):
-                            return assignments.union(new_assignments.union(key))
+                            return new_
 
-                        combinations_copy = combinations_possible.copy()
-                        combinations_copy.pop(key)
-
-                        if CNF_copy == CNF:
-                            print("!")
-                            for clause in CNF.values():
-                                for literal in clause:
-                                    if -literal not in assignments:
-                                        print("LITERAL: ", literal)
-                                        result = self.P_SAT(CNF_copy, combinations_copy, assignments=assignments.union(new_assignments.union(key)).union(set([literal])), recursive=recursive+1)
-                                        if result:
-                                            return result
-
-                                        break
+                        new_combinations = form_combinations_from_CNF(CNF_copy)
                         
-                        result = self.P_SAT(CNF_copy, combinations_copy, assignments=assignments.union(new_assignments.union(key)), recursive=recursive+1)
-                    
+                        if not any(new_combinations):
+                            for clause in CNF_copy.values():
+                                for literal in clause:
+                                    if -literal not in new_:
+                                        new_.add(literal)
+                                        break
+
+                            return new_
+
+
+                        result = self.P_SAT(CNF_copy, new_combinations, assignments=new_, recursive=recursive+1)
+
                         if result:
-                            return result
+                            assignments = assignments.union(result).union(new_assignments).union(key)
+                            return assignments
+
+        return False
+    
