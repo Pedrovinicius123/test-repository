@@ -13,3 +13,4 @@ But i have to prove that for *all* problems we have are contained in the worst c
 
  That may be disapointing, but I think that is the right answer: $P \neq NP$. More studies must be done to ensure that. Although, it is very sad for me that this may be true...
  
+To prove that, we must ensure that there is non-combinatory or heuristic algorithm that can solve, in optimal polinomial time, a SAT problem. This make the graph even more important, because it shows the function $\theta(i) = \frac{\theta!}{i! \cdot (\theta - i)!}$, that is in function of $i$ related to $\theta$ (nothing more, nothing less than $C_{\theta, i}$ in function of $i$, where $i \leq \theta$). In worst case, it leads to huge number of combinations, and for check each of then, we have a high computational complexity
