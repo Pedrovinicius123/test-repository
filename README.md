@@ -1,4 +1,4 @@
-# test-repository
+# P vs NP research experiment
 
 ## Epilogue
 
