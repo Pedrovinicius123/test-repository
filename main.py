@@ -1,5 +1,7 @@
-from solver import form_combinations_from_CNF, dict_cnf, Solver, test_assignments
-import random, time
+from solver import Solver
+from factorial import calc_factorial_range
+import random
+import matplotlib.pyplot as plt
 
 
 def generate_random_SAT(n_variables, n_clauses, max_literals_per_clause):
@@ -19,16 +21,13 @@ def generate_random_SAT(n_variables, n_clauses, max_literals_per_clause):
     return CNF
 
 if __name__ == '__main__':
-    n_variables = 20
-    CNF = generate_random_SAT(n_variables, 50, 3)
-
+    n_variables = 30
+    CNF = generate_random_SAT(n_variables, 100, 3)
     #print(pycosat.solve(list(map(list, CNF))))
 
-    CNF_new = dict_cnf(CNF)
-    paths = form_combinations_from_CNF(CNF_new)
-    result = Solver().P_SAT(CNF_new, paths)
+    for i in range(100):
+        solver = Solver(CNF)
+        print(solver.contradictions, len(solver.combs))
+        calc_factorial_range(len(solver.combs))
 
-    if result:
-        print(result)
-        print(test_assignments(CNF_new, result))
-        
+
