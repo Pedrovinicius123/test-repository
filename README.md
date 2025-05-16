@@ -7,7 +7,7 @@ An idea I've got
 I'm higly suspecting that there is no algorithm that solves a 3-SAT (and forward) problem efficiently, most of the problems have a high time complexity in worst case.
 But i have to prove that for **all** problems we have are contained in the worst case. There's a graph that determine it.
 
-![PneqNP](https://github.com/user-attachments/assets/2d5b8c10-f578-40e0-b4c9-8451f08e518d)
+![P_neq_NP](https://github.com/user-attachments/assets/9e74f498-3ca5-4e84-be53-51d53f77966f)
 
  According to [this source](https://www-sciencedirect-com.translate.goog/topics/computer-science/combinatorial-problem): "Combinatorial problems arise in many areas of computer science and other disciplines in which computational methods are applied, such as artificial intelligence, operations research, bioinformatics and electronic commerce. Prominent examples are tasks such as finding shortest or cheapest round trips in graphs, finding models of propositional formulae or determining the 3D-structure of proteins. Other well-known combinatorial problems are encountered in planning, scheduling, time-tabling, resource allocation, code design, hardware design and genome sequencing. These problems typically involve finding groupings, orderings or assignments of a discrete, finite set of objects that satisfy certain conditions or constraints."
 
@@ -23,4 +23,4 @@ If a non-deterministic computer toke a solution from the processed n-SAT problem
 
 The best aproach we have today is DPLL (Davis-Putnam-Logemann-Loveland), wich is also an combinatory algorithm that solves the problem. Although in a exponential complexity $O(2^n)$, for 2-SAT (wich is not NP-Complete), DPLL have a complexity of $O(n^2)$. I've tried an algorithm that highlights some of the variables in a 3-SAT problem, turning it polynomial, but it don't work since, in a semantic way, the algorithm remains exponential.
 
-What this mean?
+What this mean?...
