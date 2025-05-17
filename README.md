@@ -32,3 +32,5 @@ At 21:43 pm I realized that such thing isn't a proof of P = NP, but a counter pr
 Let be a $\eta$ set of literals, from wich I would take a combination of literals $C_{\eta, k}$, negating the restant variables. If, in the result provided by the chunk ($k$) we defined, there is no correct atribuition to the SAT problem, that doesn't mean the problem is whether satisfiable or not. It would imply that, in worst cases, we may have great search costs, leading to an exponential rate.
 
 More studies are required to determine whether this proof is valid or not.
+
+[...](https://www.overleaf.com/read/btsskgtbbgdv#5fdc26)
