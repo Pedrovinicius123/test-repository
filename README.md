@@ -23,4 +23,12 @@ If a non-deterministic computer toke a solution from the processed n-SAT problem
 
 The best aproach we have today is DPLL (Davis-Putnam-Logemann-Loveland), wich is also an combinatory algorithm that solves the problem. Although in a exponential complexity $O(2^n)$, for 2-SAT (wich is not NP-Complete), DPLL have a complexity of $O(n^2)$. I've tried an algorithm that highlights some of the variables in a 3-SAT problem, turning it polynomial, but it don't work since, in a semantic way, the algorithm remains exponential.
 
-What this mean?...
+# The proof (?) - 2
+
+At 20:54 pm, 05/16/2025, I think I did a massive discovery: an algorithm better than DPLL. I basically got an set $\eta$ of literals and I apply that, within the combinations, the sample would be positive, whereas the restant literals would be negative.
+
+At 21:43 pm I realized that such thing isn't a proof of P = NP, but a counter proof to the conjecture. Here's wy:
+
+Let be a $\eta$ set of literals, from wich I would take a combination of literals $C_{\eta, k}$, negating the restant variables. If, in the result provided by the chunk ($k$) we defined, there is no correct atribuition to the SAT problem, that doesn't mean the problem is whether satisfiable or not. It would imply that, in worst cases, we may have great search costs, leading to an exponential rate.
+
+More studies are required to determine whether this proof is valid or not.
