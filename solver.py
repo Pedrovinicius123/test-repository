@@ -1,54 +1,92 @@
-import math# for debugging
 from collections import defaultdict
 from itertools import combinations
+from factorial import calc_factorial_range
+from rich.pretty import pprint
+import time, copy, random
 
-def complement(clause1, clause2):
-    copy1 = clause1.copy()
-    copy2 = clause2.copy()
+def check_contradiction(CNF):
+    for clause in CNF:
+        if len(clause) == 1 and [-list(clause)[0]] in CNF:
+            return True
 
-    inter = set(copy1).intersection(set(copy2))
+    return False
 
-    for literal in inter:
-        copy1.remove(literal)
-        copy2.remove(literal)
+def check_empty(CNF):
+    for clause in CNF:
+        if len(clause) == 0:
+            return True
 
-    return inter, [copy1] + [copy2]
+    return False
 
-def dict_cnf(CNF:list):
-    CNF_new = {}
-    for idx, clause in enumerate(CNF):
-        CNF_new[idx] = clause
+def test(assignments, CNF):
+    for clause in CNF:
+        found = False
 
-    return CNF_new
+        for literal in assignments:
+            if literal in clause:
+                found = True
+                break
 
-def form_combinations_from_CNF(CNF:dict):
-    combinations_possible = defaultdict(set)
-    for comb in combinations(CNF, 2):
-        value, comp = complement(comb[0], comb[1])
-        if any(value):
-            combinations_possible[frozenset(value)] = combinations_possible[frozenset(value)].union(set([frozenset(comp[0])] + [frozenset(comp[1])]))
+        if not found:
+            print(clause)
+            return False
 
-    return combinations_possible
+    return True
 
-def form_paths_from_combinations(combs):
-    literals_pool = set()
-    contradictions = 0
+def count_most_reccurent(CNF, assignments=[]):
+    rec = defaultdict(int)
 
-    for key in combs.keys():
-        for literal in key:
-            if -literal in literals_pool and literal not in literals_pool:
-                contradictions += 1
+    for clause in CNF:
+        for literal in clause:
+            if -literal not in assignments:
+                rec[literal] += 1
 
-            else:
-                literals_pool.add(literal)
-
-    paths = combinations(combs.keys(), (contradictions if contradictions > 0 else 1))
-    return paths, contradictions
-
+    if any(rec):
+        return max(rec, key=rec.get)
+    return False
 
 class Solver:
     def __init__(self, CNF):
-        self.combs = form_combinations_from_CNF(CNF)
-        self.paths, self.contradictions = form_paths_from_combinations(self.combs)
-        print('NICE')
-        print(math.factorial(len(self.combs))/ (math.factorial(self.contradictions) * math.factorial(len(self.combs) - self.contradictions)))
+        self.CNF = CNF
+        self.iterations = 1
+        result = self.make_simplification(CNF)
+        pprint(result)
+        print('INTERATIONS', self.iterations)
+        #print(stringify_tree(result))
+
+    def make_simplification(self, CNF, assignments=[]):
+        print(CNF)
+        self.iterations += 1 
+        time.sleep(0.1)
+        if all(len(clause) <= 1 for clause in CNF):
+            return CNF
+
+        most_reccurent = count_most_reccurent(CNF, assignments=assignments)
+        simpl = defaultdict(list)              
+
+        if not most_reccurent or check_contradiction(CNF):
+            return False
+        
+        for clause in CNF:
+            clause_copy = clause.copy()
+
+            if most_reccurent in clause:
+                clause_copy.remove(most_reccurent)
+                simpl[most_reccurent].append(clause_copy)
+
+            elif -most_reccurent in clause:
+                clause_copy.remove(-most_reccurent)
+                simpl[-most_reccurent].append(clause_copy)
+
+            if any(clause_copy):
+                simpl[most_reccurent].append(clause_copy)
+                continue
+
+            CNF.remove(clause)
+
+        for key in simpl.keys():
+            result = self.make_simplification(simpl[key], assignments=assignments+[key])
+            simpl[key] = result
+
+        return simpl
+                
