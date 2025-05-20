@@ -34,3 +34,16 @@ Let be a $\eta$ set of literals, from wich I would take a combination of literal
 More studies are required to determine whether this proof is valid or not.
 
 [...](https://www.overleaf.com/read/btsskgtbbgdv#5fdc26)
+
+# FINAL PROOF
+
+There **maybe** is an algorithm that solves a SAT formula in polynomial time, the code is described in the `solver.py` file. Note that I use `pycosat` library when all remaining clauses are within the 2SAT instance ([repository here](https://github.com/conda/pycosat.git)), I do it because the DPLL is ***polynomial*** for 2SAT instances, reaching a complexity of $O(n^2)$ in worst cases. I've also tracked the number of recursive iterations done from 3 up to 30 variables, within 10 up to 100 clauses for the 3SAT instance. There is the graph describing the complexity of the algorithm
+
+![Algorithm](https://github.com/user-attachments/assets/65ce299e-9074-4d51-b713-6291318f3949)
+
+And also, the algorithm alone, for 3 up to 13 literals and 10 up to 300 clauses compared to quadratic and exponential complexities:
+
+![Complexity](https://github.com/user-attachments/assets/22785f3c-e44e-4813-8993-5b4b8364c423)
+
+This may refutate the ETH, which claims that there is no subexponential optimization that we can do in the exponential algorithm. That means, there is no $2^{o(n)}$. It may not solve the P vs NP conjecture, but it neglect a hypotesis much stronger that it. Maybe this is a support to P = NP?
+
