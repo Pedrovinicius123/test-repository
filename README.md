@@ -45,5 +45,5 @@ And also, the algorithm alone, for 3 up to 13 literals and 10 up to 300 clauses 
 
 ![Complexity](https://github.com/user-attachments/assets/22785f3c-e44e-4813-8993-5b4b8364c423)
 
-This may refutate the ETH, which claims that there is no subexponential optimization that we can do in the exponential algorithm. That means, there is no $2^{o(n)}$. It may not solve the P vs NP conjecture, but it neglect a hypotesis much stronger that it. Maybe this is a support to P = NP?
+This may refutate the ETH, which claims that there is no subexponential optimization that we can do in the exponential algorithm. That means, there is no $2^{o(n)}$. It may not solve the P vs NP conjecture, but it neglect a hypotesis much stronger that it. Maybe this is a support to P = NP? Maybe the number of clauses reflect on the final complexity? There is a lot of studies we can do on that algorithm.
 
