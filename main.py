@@ -1,9 +1,8 @@
-from solver import Solver
+from solver import solve_SAT
 from rich.pretty import pprint
 
-import random, math, pycosat, time
+import random
 import matplotlib.pyplot as plt
-import sympy as sp
 import numpy as np
 
 
@@ -28,29 +27,11 @@ def generate_random_SAT(n_variables, n_clauses, max_literals_per_clause):
     return CNF
 
 if __name__ == '__main__':
-    n_variables = 20
+    n_variables = 5
     times, sizes = [], []
 
-    for i in range(3, n_variables):
-        print(i)
-        times_inner = []
-        for j in range(10, 100):
-            #print(j)   
-            CNF  = generate_random_SAT(n_variables=i, n_clauses=j, max_literals_per_clause=3)
-            #print(f'time pycosat: {b-a}')
-            solver = Solver(CNF)
-            times_inner.append(solver.iterations)
-
-        times.append(max(times_inner))
-        sizes.append(i)
-
-    plt.scatter(sizes, times)
-    space = np.linspace(min(sizes), max(sizes), 1000)
-    plt.plot(space, 2**space, color='red')
-
-    plt.ylabel("Tempo gasto")
-    plt.xlabel("Tamanho dos dados")
-
-    plt.show()
+    CNF = generate_random_SAT(n_variables, 7, 3)
+    print(CNF)
+    print(solve_SAT(CNF))
 
     #if isinstance(solver.result, list):
